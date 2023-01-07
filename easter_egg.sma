@@ -137,7 +137,7 @@ public eggThink(ent){
 			
 		if( get_distance_f(fOriginTarget, fOrigin) >= eggCvar[cvarDistancePickup]) continue;
 		
-		client_print_color(i, i, "^4[JAJKA]^1 Brawo podniosles jajko!^4 |^1 Sprawdz teraz ktory jestes^3 /top15jajka");
+		client_print_color(i, i, "^4[JAJKA]^1 Brawo podniosles jajko!^4 |^1 Sprawdz teraz ktory jestes^3 /top10jajka");
 		userEggs[i] ++;
 		remove_entity(ent);
 		
