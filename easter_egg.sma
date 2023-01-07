@@ -89,7 +89,7 @@ public CBasePlayer_Killed(victim, attacker){
 	
 	if( victim == attacker || attacker == 0 || victim == 0 ) return
 	
-	if( attacker != victim ) if(random(100) > eggCvar[cvarPercentDrop]) createEgg(victim);
+	if( attacker != victim ) if(random(100) < eggCvar[cvarPercentDrop]) createEgg(victim);
 	
 }
 
