@@ -33,15 +33,15 @@ amxx4u_egg_distance_pickup "40.0"
 
 - MOTD
 
-  <img src=""></img>
+  <img src="https://raw.githubusercontent.com/KoRrNiK/easter-egg/main/assets/motd.png"></img>
 
 - Game
 
-  <img src=""></img>
+  <img src="https://raw.githubusercontent.com/KoRrNiK/easter-egg/main/assets/game.png"></img>
 
 - Chat
 
-  <img src=""></img>
+  <img src="https://raw.githubusercontent.com/KoRrNiK/easter-egg/main/assets/chat.png"></img>
 </details>
 
 ### Requirements 
