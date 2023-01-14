@@ -11,6 +11,8 @@ new const AUTHOR[] = "KoRrNiK";
 new const URL_AUTHOR[] = "https://github.com/KoRrNiK/";
 new const F_VAULTFILE[] = "f_easter_egg";
 
+//#define LOAD_METOD
+
 enum _:MODEL_ENUM { 
 	EGG_MODEL, 
 	EGG_CLASS
@@ -25,7 +27,9 @@ enum _:TOP_ENUM {
 	TOP_NAME[450], 
 };
 new data[TOP_ENUM];
-new motd_data[MAX_MOTD_LENGTH];
+#if defined LOAD_METOD
+	new motd_data[MAX_MOTD_LENGTH];
+#endif 
 
 enum _:CVAR_ENUM {
 	cvar_percent_drop,
@@ -49,8 +53,15 @@ public plugin_init() {
 	
 	register_plugin(NAME, VERSION, AUTHOR, URL_AUTHOR);
 	
-	register_clcmd("say /top10jajek", "show_top");
-
+	#if defined LOAD_METOD
+		register_clcmd("say /top10jajek", "show_top");
+		create_top_eggs();
+		log_amx("LOAD TOP EGGS [SERVER]");
+	#else 
+		register_clcmd("say /top10jajek", "create_top_eggs");
+		log_amx("LOAD TOP EGGS [CLIENT]");
+	#endif
+	
 	RegisterHookChain(RG_CBasePlayer_Killed, "CBasePlayer_Killed", 0);
 	register_logevent("round_start", 2, "1=Round_Start");
 	
@@ -58,7 +69,7 @@ public plugin_init() {
 	bind_pcvar_num(create_cvar("amxx4u_egg_speed_remove", "3"), egg_cvar[cvar_speed_drop]);
 	bind_pcvar_float(create_cvar("amxx4u_egg_distance_pickup", "40.0"), egg_cvar[cvar_distance_pickup]);
 	
-	create_top_eggs();
+
 	
 }
 
@@ -86,10 +97,6 @@ public CBasePlayer_Killed(victim, attacker){
 			create_egg(victim);
 	}
 }
-
-public show_top(id)
-	show_motd(id, motd_data, "Top 10 Zebranych Jajek!");
-
 
 public create_egg(id){
 	
@@ -169,9 +176,20 @@ public load_data(id){
 	
 }
 
+#if defined LOAD_METOD
+
+public show_top(id)
+	show_motd(id, motd_data, "Top 10 Zebranych Jajek!");
+
 public create_top_eggs(){
-	
+#else 
+public create_top_eggs(id){
+#endif
 	static motd_len;
+	
+	#if !defined LOAD_METOD
+		static motd_data[MAX_MOTD_LENGTH];
+	#endif
     
 	new Array:keys = ArrayCreate(450);
 	new Array:datas = ArrayCreate(750);
@@ -212,7 +230,10 @@ public create_top_eggs(){
 	} 
 	
 	motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "</table></div></body>");
-
+	
+	#if !defined LOAD_METOD
+		show_motd(id, motd_data, "Top 10 Zebranych Jajek!");
+	#endif	
 } 
 
 public sort_data( Array:array, item_1, item_2, data[], data_size ) {
