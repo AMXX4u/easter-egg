@@ -152,7 +152,7 @@ public save_data(id){
 	if(!player_info[id][PLAYER_LOADED]) return;
 	
 	new data_vault[64];
-	format(data_vault, charsmax(data_vault), "%d", player_info[id][PLAYER_EGGS]);
+	formatex(data_vault, charsmax(data_vault), "%d", player_info[id][PLAYER_EGGS]);
 	fvault_set_data(F_VAULTFILE, player_info[id][PLAYER_NAME], data_vault);
 }
 
@@ -206,24 +206,24 @@ public create_top_eggs(id){
 	static player_name[MAX_NAME_LENGTH]; 
 	
 	motd_len = 0;
-	motd_len = format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<body><meta charset='UTF-8'><link rel='stylesheet' href='https://amxx4u.pl/server/top-eggs.css'>");
+	motd_len = formatex(motd_data[motd_len], charsmax(motd_data) - motd_len, "<body><meta charset='UTF-8'><link rel='stylesheet' href='https://amxx4u.pl/server/top-eggs.css'>");
 	
-	motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<div><p>Top 10 Jajek!</p><table>");
-	motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td><b>#</b></td><td><b>Nazwa</b></td><td><b>Jajka</b></td></tr>");
+	motd_len += formatex(motd_data[motd_len], charsmax(motd_data) - motd_len, "<div><p>Top 10 Jajek!</p><table>");
+	motd_len += formatex(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td><b>#</b></td><td><b>Nazwa</b></td><td><b>Jajka</b></td></tr>");
 	
 	for(new j = 0; j < size; j++ ) { 
 	
 		ArrayGetArray(all, j, data);	 
 		fvault_get_data(F_VAULTFILE, data[TOP_NAME], player_name, charsmax(player_name)); 
 		
-		if(j+1 == 1) motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td id='f'>%d</td><td id='f'>%s</td><td id='f'>%s</td></tr>", j + 1, data[TOP_NAME], data[TOP_DATA]);
-		else if(j+1 == 2) motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td id='s'>%d</td><td id='s'>%s</td><td id='s'>%s</td></tr>", j + 1, data[TOP_NAME], data[TOP_DATA]);
-		else if(j+1 == 3) motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td id='t'>%d</td><td id='t'>%s</td><td id='t'>%s</td></tr>", j + 1, data[TOP_NAME], data[TOP_DATA]);
-		else motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td>%d</td><td>%s</td><td>%s</td></tr>", j + 1, data[TOP_NAME], data[TOP_DATA]);
+		if(j+1 == 1) motd_len += formatex(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td id='f'>%d</td><td id='f'>%s</td><td id='f'>%s</td></tr>", j + 1, data[TOP_NAME], data[TOP_DATA]);
+		else if(j+1 == 2) motd_len += formatex(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td id='s'>%d</td><td id='s'>%s</td><td id='s'>%s</td></tr>", j + 1, data[TOP_NAME], data[TOP_DATA]);
+		else if(j+1 == 3) motd_len += formatex(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td id='t'>%d</td><td id='t'>%s</td><td id='t'>%s</td></tr>", j + 1, data[TOP_NAME], data[TOP_DATA]);
+		else motd_len += formatex(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td>%d</td><td>%s</td><td>%s</td></tr>", j + 1, data[TOP_NAME], data[TOP_DATA]);
 		
 	} 
 	
-	motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "</table></div></body>");
+	motd_len += formatex(motd_data[motd_len], charsmax(motd_data) - motd_len, "</table></div></body>");
 	
 	#if !defined LOAD_METOD
 		show_motd(id, motd_data, "Top 10 Zebranych Jajek!");
