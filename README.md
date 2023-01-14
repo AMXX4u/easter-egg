@@ -8,6 +8,9 @@
 - Plugin dodaje wielkanocne jajka które pojawiają się pod nogami z zabitej osoby
 - Plugin posiada top10 zebranych jajek wielkanocnych ( /top10jajek )
 - Zapis jajek wielkanocnych napisany jest pod fVault
+- Plugin posiada dwie metody wczytywania top10 ( Na początku uruchomienia mapy lub za każdym razem po wpisaniu /top10jajek )
+- w 14 linijce znajduje się `#define LOAD_METOD` i wystarczy to zakomentować aby zmienił się tryb wczytywania ) 
+- Zakomentowany wczytuje za każdym razem po wpisaniu komendy
 
 ### Configure
 <details>
