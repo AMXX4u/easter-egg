@@ -1,269 +1,239 @@
+#pragma semicolon 1
+
 #include <amxmodx>
 #include <reapi>
 #include <engine>
 #include <fvault>
 
-enum _:eInfoPlugin { PLUGIN, VERSION, AUTHOR, URL, DESCRIPTION };
-new const PLUGIN_INFO[eInfoPlugin][] = {
-	"Easter Egg",
-	"1.0",
-	"KoRrNiK",
-	"https://github.com/KoRrNiK/",
-	"Easter eggs drop for kills"
-};
+new const NAME[] = "Easter Egg";
+new const VERSION[] = "1.0";
+new const AUTHOR[] = "KoRrNiK";
+new const URL_AUTHOR[] = "https://github.com/KoRrNiK/";
+new const F_VAULTFILE[] = "f_easter_egg";
 
-enum _:eModelInfo { EGG_MODEL, EGG_CLASS }
-new const modelInfo[eModelInfo][] = {
+enum _:MODEL_ENUM { 
+	EGG_MODEL, 
+	EGG_CLASS
+};
+new const model_info[MODEL_ENUM][] = {
 	"models/egg.mdl",
 	"egg"
-}
+};
 
-new const fVAULTFILE[] = "f_easter_egg";
+enum _:TOP_ENUM { 
+	TOP_DATA[750], 
+	TOP_NAME[450], 
+};
+new data[TOP_ENUM];
+new motd_data[MAX_MOTD_LENGTH];
 
-enum _:FvaultData { 
-	top_DATA[750], 
-	top_NAME[450], 
-} 
+enum _:CVAR_ENUM {
+	cvar_percent_drop,
+	cvar_speed_drop,
+	Float:cvar_distance_pickup,
 
-new userEggs[33];
-new userName[33][33];
-new bool:userLoaded[33];
+};
+new egg_cvar[CVAR_ENUM];
 
-enum _:allCvars {
-	cvarPercentDrop,
-	cvarSpeedDrop,
-	Float:cvarDistancePickup
+enum _:DATA_ENUM {
+	PLAYER_NAME[33],
+	bool:PLAYER_LOADED,
+	PLAYER_EGGS,
+};
+new player_info[33][DATA_ENUM];
 
-}
-new eggCvar[allCvars]
-
-public plugin_precache(){
-	
-	precache_model(modelInfo[EGG_MODEL]);
-	
-}
+public plugin_precache()
+	precache_model(model_info[EGG_MODEL]);
 
 public plugin_init() {
 	
-	register_plugin(
-		.plugin_name = PLUGIN_INFO[PLUGIN],
-		.version = PLUGIN_INFO[VERSION],
-		.author = PLUGIN_INFO[AUTHOR],
-		.url = PLUGIN_INFO[URL],
-		.description = PLUGIN_INFO[DESCRIPTION]
-		
-	);
+	register_plugin(NAME, VERSION, AUTHOR, URL_AUTHOR);
 	
-	register_clcmd( "say /top10jajek", "cmdTop10" );
+	register_clcmd("say /top10jajek", "show_top");
 
-	RegisterHookChain(RG_CBasePlayer_Killed, "CBasePlayer_Killed", false);
-	
+	RegisterHookChain(RG_CBasePlayer_Killed, "CBasePlayer_Killed", 0);
 	register_logevent("round_start", 2, "1=Round_Start");
 	
-	bind_pcvar_num(create_cvar("amxx4u_egg_drop_percent", "100"), eggCvar[cvarPercentDrop]);
-	bind_pcvar_num(create_cvar("amxx4u_egg_speed_remove", "3"), eggCvar[cvarSpeedDrop]);
-	bind_pcvar_float(create_cvar("amxx4u_egg_distance_pickup", "40.0"), eggCvar[cvarDistancePickup]);
+	bind_pcvar_num(create_cvar("amxx4u_egg_drop_percent", "100"), egg_cvar[cvar_percent_drop]);
+	bind_pcvar_num(create_cvar("amxx4u_egg_speed_remove", "3"), egg_cvar[cvar_speed_drop]);
+	bind_pcvar_float(create_cvar("amxx4u_egg_distance_pickup", "40.0"), egg_cvar[cvar_distance_pickup]);
+	
+	create_top_eggs();
 	
 }
 
-public client_disconnected(id){
-	saveData(id);
-}
+public client_disconnected(id)
+	save_data(id);
 
 public client_connect(id){
-	get_user_name(id, userName[id], sizeof(userName[]) - 1);
+	get_user_name(id, player_info[id][PLAYER_NAME], charsmax(player_info[][PLAYER_NAME]));
 	
-	userEggs[id] = 0;
-	userLoaded[id] = false;
+	player_info[id][PLAYER_EGGS] = 0;
+	player_info[id][PLAYER_LOADED] = false;
 	
-	loadData(id);
+	load_data(id);
 }
 
-public round_start(){
-	removeAllEntity(modelInfo[EGG_CLASS]);
-}
-
+public round_start()
+	remove_all_entity(model_info[EGG_CLASS]);
 
 public CBasePlayer_Killed(victim, attacker){
 	
+	if( victim == attacker || attacker == 0 || victim == 0 ) return;
 	
-	if( victim == attacker || attacker == 0 || victim == 0 ) return
-	
-	if( attacker != victim ) if(random(100) < eggCvar[cvarPercentDrop]) createEgg(victim);
-	
+	if( attacker != victim ){
+		if(random(100) < egg_cvar[cvar_percent_drop]) 
+			create_egg(victim);
+	}
 }
 
-public createEgg(id){
+public show_top(id)
+	show_motd(id, motd_data, "Top 10 Zebranych Jajek!");
+
+
+public create_egg(id){
 	
 	new Float:fOrigin[3];
-	
 	get_entvar(id, var_origin, fOrigin);
 	
 	new ent = rg_create_entity("info_target");
 	
-	set_entvar(ent, var_classname, modelInfo[EGG_CLASS]);
-	
+	set_entvar(ent, var_classname, model_info[EGG_CLASS]);
 	set_entvar(ent, var_movetype, MOVETYPE_TOSS);
 	set_entvar(ent, var_solid, SOLID_SLIDEBOX);
-	
-	entity_set_model(ent, modelInfo[EGG_MODEL]);
-	
+	entity_set_model(ent, model_info[EGG_MODEL]);
 	set_entvar(ent, var_iuser1, 255);
-
 	set_rendering(ent, kRenderFxGlowShell, 0,0,0, kRenderTransAlpha, get_entvar(ent, var_iuser1));
-	
 	set_entvar(ent, var_origin, fOrigin);
-	
 	drop_to_floor(ent);
 	
-	set_task(0.1, "eggThink", ent);	
-	
+	set_task(0.1, "think_egg", ent);	
 }
 
-public eggThink(ent){
+public think_egg(ent){
 	
-	if( !is_valid_ent(ent) || ent == 0 ) return PLUGIN_CONTINUE;
+	if( !is_entity(ent) || ent == 0 ) return PLUGIN_CONTINUE;
 
 	new Float:fOrigin[3], Float:fOriginTarget[3];	
-	
 	get_entvar(ent, var_origin, fOrigin);
 
 	for( new i = 1; i <= MAX_PLAYERS; i ++ ){
 		
-		if( !is_user_connected(i)) continue;
-		if( !is_user_alive(i)) continue;
+		if(!is_user_connected(i) || !is_user_alive(i)) continue;
 				
 		get_entvar(i, var_origin, fOriginTarget);
 			
-		if( get_distance_f(fOriginTarget, fOrigin) >= eggCvar[cvarDistancePickup]) continue;
+		if(get_distance_f(fOriginTarget, fOrigin) >= egg_cvar[cvar_distance_pickup]) continue;
 		
-		client_print_color(i, i, "^4[JAJKA]^1 Brawo podniosles jajko!^4 |^1 Sprawdz teraz ktory jestes^3 /top10jajka");
-		userEggs[i] ++;
+		player_info[i][PLAYER_EGGS] ++;
+		
+		client_print_color(i, i, "^4[JAJKA]^1 Brawo podniosles jajko!^4 |^1 Sprawdz teraz ktory jestes^3 /top10jajek");
 		remove_entity(ent);
 		
 		return PLUGIN_HANDLED_MAIN;	
 	}
 	
 	new alpha = get_entvar(ent, var_iuser1);
-	
-	set_entvar(ent, var_iuser1, alpha - eggCvar[cvarSpeedDrop]);
-	
+	set_entvar(ent, var_iuser1, alpha - egg_cvar[cvar_speed_drop]);
 	set_rendering(ent, kRenderFxGlowShell, 0,0,0, kRenderTransAlpha, alpha);
 	
 	if(!alpha) remove_entity(ent);
-	else set_task(0.1, "eggThink", ent);
+	else set_task(0.1, "think_egg", ent);
 	
 	return PLUGIN_CONTINUE;
 }
 
-public saveData(id){
+public save_data(id){
 		
-	if(!userLoaded[id]) return;
+	if(!player_info[id][PLAYER_LOADED]) return;
 	
-	new szData[512];
-	format(szData, sizeof(szData)-1,"%d", 
-		userEggs[id]
-	);
-	fvault_set_data(fVAULTFILE, userName[id], szData);
+	new data_vault[64];
+	format(data_vault, charsmax(data_vault), "%d", player_info[id][PLAYER_EGGS]);
+	fvault_set_data(F_VAULTFILE, player_info[id][PLAYER_NAME], data_vault);
 	
 }
 
-public loadData(id){
+public load_data(id){
 	
-	new szData[512];
+	new data_vault[64];
 	
-	if( fvault_get_data(fVAULTFILE, userName[id], szData, sizeof(szData) - 1) ){
-		new szEggs[7];
-		parse(szData,
-			szEggs,	sizeof(szEggs)
-		);
-		userEggs[id]	=	str_to_num(szEggs);
+	if( fvault_get_data(F_VAULTFILE, player_info[id][PLAYER_NAME], data_vault, charsmax(data_vault)) ){
+		new eggs_parse[7];
+		parse(data_vault, eggs_parse, sizeof(eggs_parse));
+		player_info[id][PLAYER_EGGS] = str_to_num(eggs_parse);
 	}else{
-		userEggs[id]	=	0;
+		player_info[id][PLAYER_EGGS] = 0;
 	}
 	
-	userLoaded[id] = true;
+	player_info[id][PLAYER_LOADED] = true;
 	
 }
 
-public cmdTop10(id){
+public create_top_eggs(){
 	
-	static iLen, gText[MAX_MOTD_LENGTH];
+	static motd_len;
     
 	new Array:keys = ArrayCreate(450);
 	new Array:datas = ArrayCreate(750);
-	new Array:all = ArrayCreate(FvaultData) 
+	new Array:all = ArrayCreate(TOP_ENUM);
 	
-	fvault_load(fVAULTFILE, keys, datas);
+	fvault_load(F_VAULTFILE, keys, datas);
 	
-	new arraySize = ArraySize( keys ) 
-	
-	new data[FvaultData];
+	new array_size = ArraySize(keys);
 			
-	for( new i = 0; i < arraySize; i++ ){
-
-		ArrayGetString(keys, i, data[top_NAME], sizeof(data[top_NAME]) - 1);
-		ArrayGetString(datas, i, data[top_DATA], sizeof(data[top_DATA]) - 1);
-		ArrayPushArray(all, data ) 	
-		
+	for( new i = 0; i < array_size; i++ ){
+		ArrayGetString(keys, i, data[TOP_NAME], charsmax(data[TOP_NAME]));
+		ArrayGetString(datas, i, data[TOP_DATA], charsmax(data[TOP_DATA]));
+		ArrayPushArray(all, data); 	
 	}
-	ArraySort(all, "SortData" ) 
 	
-	new size = clamp(arraySize, 0, 10 ) 
+	ArraySort(all, "sort_data");
 	
-	new szName[MAX_NAME_LENGTH] 
+	new size = clamp(array_size, 0, 10);
 	
-	iLen = 0;
-	iLen = format(gText[iLen], sizeof(gText)-iLen-1, "<body><meta charset='UTF-8'><link rel='stylesheet' href='https://amxx4u.pl/server/top-eggs.css'>");
+	static player_name[MAX_NAME_LENGTH]; 
 	
-	iLen += format(gText[iLen], sizeof(gText)-iLen-1, "<div>");
-	iLen += format(gText[iLen], sizeof(gText)-iLen-1, "<p>Top 10 Jajek!</p>");
-	iLen += format(gText[iLen], sizeof(gText)-iLen-1, "<table>");	
-	iLen += format(gText[iLen], sizeof(gText)-iLen-1, "<tr><td><b>#</b></td><td><b>Nazwa</b></td><td><b>Jajka</b></td></tr>");
+	motd_len = 0;
+	motd_len = format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<body><meta charset='UTF-8'><link rel='stylesheet' href='https://amxx4u.pl/server/top-eggs.css'>");
+	
+	motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<div><p>Top 10 Jajek!</p><table>");
+	motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td><b>#</b></td><td><b>Nazwa</b></td><td><b>Jajka</b></td></tr>");
 	
 	for(new j = 0; j < size; j++ ) { 
 	
-		ArrayGetArray(all, j, data ) 	 
-		fvault_get_data(fVAULTFILE, data[top_NAME], szName, sizeof(szName) - 1 ) 
+		ArrayGetArray(all, j, data);	 
+		fvault_get_data(F_VAULTFILE, data[TOP_NAME], player_name, charsmax(player_name)); 
 		
-		if(j+1 == 1) iLen += format(gText[iLen], sizeof(gText) - 1 - iLen, "<tr><td id='f'>%d</td><td id='f'>%s</td><td id='f'>%s</td></tr>", j + 1, data[top_NAME], data[top_DATA]);
-		else if(j+1 == 2) iLen += format(gText[iLen], sizeof(gText) - 1 - iLen, "<tr><td id='s'>%d</td><td id='s'>%s</td><td id='s'>%s</td></tr>", j + 1, data[top_NAME], data[top_DATA]);
-		else if(j+1 == 3) iLen += format(gText[iLen], sizeof(gText) - 1 - iLen, "<tr><td id='t'>%d</td><td id='t'>%s</td><td id='t'>%s</td></tr>", j + 1, data[top_NAME], data[top_DATA]);
-		else iLen += format(gText[iLen], sizeof(gText) - 1 - iLen, "<tr><td>%d</td><td>%s</td><td>%s</td></tr>", j + 1, data[top_NAME], data[top_DATA]);
+		if(j+1 == 1) motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td id='f'>%d</td><td id='f'>%s</td><td id='f'>%s</td></tr>", j + 1, data[TOP_NAME], data[TOP_DATA]);
+		else if(j+1 == 2) motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td id='s'>%d</td><td id='s'>%s</td><td id='s'>%s</td></tr>", j + 1, data[TOP_NAME], data[TOP_DATA]);
+		else if(j+1 == 3) motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td id='t'>%d</td><td id='t'>%s</td><td id='t'>%s</td></tr>", j + 1, data[TOP_NAME], data[TOP_DATA]);
+		else motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "<tr><td>%d</td><td>%s</td><td>%s</td></tr>", j + 1, data[TOP_NAME], data[TOP_DATA]);
 		
 	} 
 	
-	iLen += format(gText[iLen], sizeof(gText)-iLen-1, "</table>");
-	iLen += format(gText[iLen], sizeof(gText)-iLen-1, "</div>");
-	iLen += format(gText[iLen], sizeof(gText)-iLen-1, "</body>");
-	
-	show_motd(id, gText, "Top 10 Zebranych Jajek!");
+	motd_len += format(motd_data[motd_len], charsmax(motd_data) - motd_len, "</table></div></body>");
 
 } 
 
-public SortData( Array:aArray, iItem1, iItem2, iData[ ], iDataSize ) {
+public sort_data( Array:array, item_1, item_2, data[], data_size ) {
 	 
-    new Data1[FvaultData];
-    new Data2[FvaultData];
+    new data_1[TOP_ENUM], data_2[TOP_ENUM];
+    ArrayGetArray(array, item_1, data_1);
+    ArrayGetArray(array, item_2, data_2);
      
-    ArrayGetArray(aArray, iItem1, Data1) 
-    ArrayGetArray(aArray, iItem2, Data2) 
+    new points_1[7], points_2[7];
+    parse(data_1[TOP_DATA], points_1, charsmax(points_1));
+    parse(data_2[TOP_DATA], points_2, charsmax(points_2));
      
-    new szPoints_1[ 7 ] 
-    parse(Data1[top_DATA], szPoints_1, sizeof(szPoints_1) - 1) 
+    new count_1 = str_to_num(points_1);
+    new count_2 = str_to_num(points_2);
      
-    new szPoints_2[ 7 ] 
-    parse(Data2[top_DATA], szPoints_2, sizeof(szPoints_2) - 1) 
-     
-    new iCount1 = str_to_num( szPoints_1 ) 
-    new iCount2 = str_to_num( szPoints_2 ) 
-     
-    return ( iCount1 > iCount2 ) ? -1 : ( ( iCount1 < iCount2 ) ? 1 : 0 ) 
-} 
+    return (count_1 > count_2) ? -1 : ((count_1 < count_2) ? 1 : 0); 
+}
 
-public removeAllEntity(const nameClass[]){
+public remove_all_entity(const class_name[]){
 	new ent = -1;
-	while ((ent = find_ent_by_class(ent, nameClass))){
-		if (is_valid_ent(ent)) remove_entity(ent);
+	while ((ent = find_ent_by_class(ent, class_name))){
+		if (is_entity(ent)) remove_entity(ent);
 	}
 }
