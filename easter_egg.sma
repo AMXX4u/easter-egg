@@ -11,7 +11,7 @@ new const AUTHOR[] = "KoRrNiK";
 new const URL_AUTHOR[] = "https://github.com/KoRrNiK/";
 new const F_VAULTFILE[] = "f_easter_egg";
 
-//#define LOAD_METOD
+#define LOAD_METOD
 
 enum _:MODEL_ENUM { 
 	EGG_MODEL, 
@@ -68,9 +68,6 @@ public plugin_init() {
 	bind_pcvar_num(create_cvar("amxx4u_egg_drop_percent", "100"), egg_cvar[cvar_percent_drop]);
 	bind_pcvar_num(create_cvar("amxx4u_egg_speed_remove", "3"), egg_cvar[cvar_speed_drop]);
 	bind_pcvar_float(create_cvar("amxx4u_egg_distance_pickup", "40.0"), egg_cvar[cvar_distance_pickup]);
-	
-
-	
 }
 
 public client_disconnected(id)
@@ -90,9 +87,9 @@ public round_start()
 
 public CBasePlayer_Killed(victim, attacker){
 	
-	if( victim == attacker || attacker == 0 || victim == 0 ) return;
+	if(victim == attacker || attacker == 0 || victim == 0) return;
 	
-	if( attacker != victim ){
+	if(attacker != victim){
 		if(random(100) < egg_cvar[cvar_percent_drop]) 
 			create_egg(victim);
 	}
@@ -119,12 +116,12 @@ public create_egg(id){
 
 public think_egg(ent){
 	
-	if( !is_entity(ent) || ent == 0 ) return PLUGIN_CONTINUE;
+	if(!is_entity(ent) || ent == 0) return PLUGIN_CONTINUE;
 
 	new Float:fOrigin[3], Float:fOriginTarget[3];	
 	get_entvar(ent, var_origin, fOrigin);
 
-	for( new i = 1; i <= MAX_PLAYERS; i ++ ){
+	for(new i = 1; i <= MAX_PLAYERS; i ++){
 		
 		if(!is_user_connected(i) || !is_user_alive(i)) continue;
 				
@@ -157,7 +154,6 @@ public save_data(id){
 	new data_vault[64];
 	format(data_vault, charsmax(data_vault), "%d", player_info[id][PLAYER_EGGS]);
 	fvault_set_data(F_VAULTFILE, player_info[id][PLAYER_NAME], data_vault);
-	
 }
 
 public load_data(id){
@@ -173,11 +169,9 @@ public load_data(id){
 	}
 	
 	player_info[id][PLAYER_LOADED] = true;
-	
 }
 
 #if defined LOAD_METOD
-
 public show_top(id)
 	show_motd(id, motd_data, "Top 10 Zebranych Jajek!");
 
